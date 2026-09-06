@@ -68,6 +68,22 @@ public:
 	}
 };
 
+struct OnreadyWithCast final {
+	static void check_variable(const GDScriptParser::VariableNode *p_variable, GDScriptParser &p_sink) {
+		if (!p_variable->onready || !p_variable->initializer || p_variable->initializer->type != GDScriptParser::Node::CAST) {
+			return;
+		}
+
+		const GDScriptParser::CastNode *cast = static_cast<const GDScriptParser::CastNode *>(p_variable->initializer);
+		if (!cast->operand || cast->operand->type != GDScriptParser::Node::GET_NODE) {
+			return;
+		}
+
+		const GDScriptParser::GetNodeNode *get_node = static_cast<const GDScriptParser::GetNodeNode *>(cast->operand);
+		p_sink.push_warning(cast, GDScriptWarning::ONREADY_WITH_CAST, (get_node->use_dollar ? "$" : "%") + get_node->full_path);
+	}
+};
+
 // Infrastructure ===================================================================
 
 template <typename T>
@@ -88,6 +104,8 @@ constexpr GDScriptLinter::CallbackWithValidation *const GDScriptLinter::checks[]
 	LINTER_CHECK(ConfusableIdentifier::check_function),
 	LINTER_CHECK(ConfusableIdentifier::check_pattern),
 	LINTER_CHECK(ConfusableIdentifier::check_signal),
+
+	LINTER_CHECK(OnreadyWithCast::check_variable),
 };
 
 #undef LINTER_CHECK

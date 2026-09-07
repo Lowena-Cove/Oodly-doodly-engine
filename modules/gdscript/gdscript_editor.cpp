@@ -30,6 +30,7 @@
 
 #include "gdscript.h"
 #include "gdscript_analyzer.h"
+#include "gdscript_linter.h"
 #include "gdscript_parser.h"
 #include "gdscript_tokenizer.h"
 #include "gdscript_utility_functions.h"
@@ -176,6 +177,12 @@ bool GDScriptEditorLanguage::validate(const String &p_script, const String &p_pa
 	if (err == OK) {
 		err = analyzer.analyze();
 	}
+
+	if (err == OK) {
+		GDScriptLinter linter(parser);
+		err = linter.lint();
+	}
+
 #ifdef DEBUG_ENABLED
 	if (r_warnings) {
 		for (const GDScriptWarning &E : parser.get_warnings()) {

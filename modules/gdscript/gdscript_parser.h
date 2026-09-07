@@ -1370,6 +1370,7 @@ public:
 private:
 	friend class GDScriptAnalyzer;
 	friend class GDScriptParserRef;
+	friend class GDScriptLinter;
 
 	bool _is_tool = false;
 	String script_path;
@@ -1496,6 +1497,9 @@ private:
 	void update_extents(Node *p_node);
 	void reset_extents(Node *p_node, GDScriptTokenizer::Token p_token);
 	void reset_extents(Node *p_node, Node *p_from);
+	void set_synthetic_extents(Node *p_node) {
+		p_node->start_line = p_node->end_line = p_node->start_column = p_node->end_column = -1;
+	}
 
 	template <typename T>
 	T *alloc_node() {
@@ -1536,6 +1540,7 @@ private:
 	void push_error(const String &p_message, const GDScriptTokenizer::Token &p_origin);
 
 #ifdef DEBUG_ENABLED
+public:
 	void push_warning(const Node *p_source, GDScriptWarning::Code p_code, const Vector<String> &p_symbols);
 	template <typename... Symbols>
 	void push_warning(const Node *p_source, GDScriptWarning::Code p_code, const Symbols &...p_symbols) {
@@ -1546,6 +1551,8 @@ private:
 	void push_warning(int p_start_line, int p_start_column, int p_end_line, int p_end_column, GDScriptWarning::Code p_code, const Symbols &...p_symbols) {
 		push_warning(p_start_line, p_start_column, p_end_line, p_end_column, p_code, Vector<String>{ p_symbols... });
 	}
+
+private:
 	void apply_pending_warnings();
 	void evaluate_warning_directory_rules_for_script_path();
 #endif // DEBUG_ENABLED
